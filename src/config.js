@@ -11,10 +11,10 @@ const CONFIG = {
     pegRows: 9,
     altRowsOneLess: true,
     pegSpacingX: 44,
-    pegSpacingY: 50,
+    pegSpacingY: 56,
     pegRadius: 5,
     buckets: 14,
-    topMargin: 60,
+    topMargin: 50,
     ballRadius: 7,
   },
 
