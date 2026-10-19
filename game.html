@@ -42,8 +42,8 @@ window.addEventListener('error', function(e){
 
   /* ===== 主体 ===== */
   #main { flex:1; display:flex; min-height:0; }
-  #gameWrap { flex:1; position:relative; min-width:0; }
-  #gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #gameWrap { flex:1; position:relative; min-width:0; display:flex; align-items:center; justify-content:center; }
+  #gameCanvas { height:100%; aspect-ratio:520/720; display:block; }
 
   /* 右上 buff 指示 */
   #buffBadge { position:absolute; top:50px; right:12px; background:var(--panel); border:2px solid var(--gold);
@@ -120,7 +120,7 @@ window.addEventListener('error', function(e){
 
   <div id="main">
     <div id="gameWrap">
-      <canvas id="gameCanvas" width="980" height="612"></canvas>
+      <canvas id="gameCanvas" width="520" height="720"></canvas>
       <div id="buffBadge"><div class="time" id="buffTime">4s</div><div class="mult">5x</div></div>
     </div>
     <div id="side">
