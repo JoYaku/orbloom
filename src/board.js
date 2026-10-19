@@ -25,7 +25,8 @@ function buildBoard(canvasWidth, canvasHeight, config) {
         x: startX + c * b.pegSpacingX,
         y,
         radius: b.pegRadius,
-        rarity: 'common', // 默认钉子；颜色升级下一轮在此分配
+        type: 'plain',   // plain=普通半透明; white=碰钱发光; green=碰钱更亮
+        flash: 0,        // 碰撞时短暂闪光
       });
     }
   }
@@ -62,6 +63,19 @@ function ballsNeededForNextLevel(bucket, config) {
     Math.pow(config.bucket.ballTargetScalar, lvl));
 }
 
+// 根据购买的钉子升级数量，把对应数量的钉子标记为 white/green（常亮、碰钱）
+function applyPegTypes(board, whiteCount, greenCount) {
+  const pegs = board.pegs;
+  pegs.forEach((p) => { p.type = 'plain'; });
+  const total = Math.min(whiteCount + greenCount, pegs.length);
+  if (total <= 0) return;
+  const step = pegs.length / total;
+  for (let i = 0; i < total; i++) {
+    const idx = Math.min(pegs.length - 1, Math.floor(i * step + step / 2));
+    pegs[idx].type = i < whiteCount ? 'white' : 'green';
+  }
+}
+
 // 球入桶后累加进度，返回是否升级（maxLevel 可由升级系统提高）
 function addBucketBalls(bucket, ballCount, config, maxLevel) {
   const cap = maxLevel || config.bucket.baseMaxLevel;
@@ -78,5 +92,5 @@ function addBucketBalls(bucket, ballCount, config, maxLevel) {
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  buildBoard, ballsNeededForNextLevel, addBucketBalls,
+  buildBoard, ballsNeededForNextLevel, addBucketBalls, applyPegTypes,
 };

@@ -3,98 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PlinkIdle風 クリッカーゲーム | ポートフォリオ</title>
+<title>Orbloom</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:"Hiragino Sans","Yu Gothic UI",sans-serif; background:#0d1220; color:#e6ecf5; line-height:1.7; }
-  .wrap { max-width:880px; margin:0 auto; padding:40px 20px; }
-  header { text-align:center; padding:40px 0 30px; }
-  h1 { font-size:32px; color:#ffd54f; letter-spacing:1px; }
-  .sub { color:#90a4bc; margin-top:8px; font-size:15px; }
-  .badge { display:inline-block; background:#1e2a44; color:#90caf9; border-radius:20px; padding:4px 14px; font-size:12px; margin:4px; }
-  section { background:#141c2e; border:1px solid #22304d; border-radius:12px; padding:24px; margin:20px 0; }
-  h2 { font-size:18px; color:#ffd54f; margin-bottom:12px; border-left:4px solid #ffd54f; padding-left:10px; }
-  ul { padding-left:20px; }
-  li { margin:6px 0; font-size:14px; }
-  .play-btn { display:block; text-align:center; background:linear-gradient(180deg,#ffd54f,#ffb300); color:#3a2a00;
-    font-size:20px; font-weight:bold; padding:16px; border-radius:10px; text-decoration:none; margin:24px 0; }
-  .play-btn:active { transform:scale(.98); }
-  .tech { display:flex; flex-wrap:wrap; gap:8px; }
-  .tech span { background:#1e2a44; border-radius:6px; padding:4px 12px; font-size:13px; color:#81c784; }
-  .shot { width:100%; border-radius:8px; border:1px solid #2a3a5c; margin:10px 0; }
-  .note { font-size:12px; color:#6b7a90; margin-top:16px; }
-  code { background:#0d1526; padding:2px 6px; border-radius:4px; color:#90caf9; font-size:13px; }
+  body { font-family:"Zen Maru Gothic",sans-serif; background:#0a0e1a; color:#e8eefc;
+    min-height:100vh; overflow-x:hidden; }
+
+  /* 背景光晕 */
+  .glow { position:fixed; border-radius:50%; filter:blur(100px); opacity:.35; z-index:0; }
+  .glow1 { width:500px; height:500px; background:#6a3fa0; top:-100px; left:-100px; }
+  .glow2 { width:400px; height:400px; background:#2a6a9a; bottom:-80px; right:-80px; }
+  .glow3 { width:300px; height:300px; background:#9a5a8a; top:40%; left:60%; }
+
+  /* 浮动小球 */
+  .ball { position:fixed; border-radius:50%; z-index:0; opacity:.6;
+    animation:float 6s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-30px)} }
+
+  main { position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:60px 24px; }
+
+  .hero { text-align:center; padding:40px 0 60px; }
+  .logo { font-size:96px; font-weight:900; letter-spacing:6px;
+    background:linear-gradient(135deg,#ffd54f 0%,#ff8a65 35%,#ce93d8 70%,#64b5f6 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 30px rgba(255,213,79,.2)); }
+  .sub { font-size:16px; color:#8a9bc0; margin-top:12px; letter-spacing:2px; }
+
+  .cta { display:inline-block; margin-top:36px; padding:16px 56px; font-size:18px; font-weight:700;
+    color:#0a0e1a; background:linear-gradient(135deg,#ffd54f,#ffb300); border-radius:50px;
+    text-decoration:none; box-shadow:0 8px 30px rgba(255,179,0,.3); transition:transform .2s; }
+  .cta:hover { transform:scale(1.05); }
+
+  /* 截图卡片 */
+  .shot-card { margin:40px auto; border-radius:20px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.1); box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .shot-card img { width:100%; display:block; }
+
+  /* 特性三列 */
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; margin-top:40px; }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; padding:24px; backdrop-filter:blur(10px); }
+  .card .ic { font-size:28px; margin-bottom:10px; }
+  .card h3 { font-size:15px; color:#ffd54f; margin-bottom:8px; }
+  .card p { font-size:13px; color:#9ab; line-height:1.7; }
+
+  footer { text-align:center; padding:40px; font-size:11px; color:#567; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>PlinkIdle風 クリッカー / 放置ゲーム</h1>
-    <div class="sub">HTML5 + Canvas 2D で自作したインクリメンタルゲーム（Stage 1）</div>
-    <div style="margin-top:10px">
-      <span class="badge">個人制作</span><span class="badge">学習プロジェクト</span>
-      <span class="badge">JavaScript</span><span class="badge">Canvas</span>
+  <div class="glow glow1"></div>
+  <div class="glow glow2"></div>
+  <div class="glow glow3"></div>
+  <div class="ball" style="width:20px;height:20px;background:#ffd54f;top:20%;left:10%;"></div>
+  <div class="ball" style="width:14px;height:14px;background:#64b5f6;top:60%;left:85%;animation-delay:1s;"></div>
+  <div class="ball" style="width:26px;height:26px;background:#ce93d8;top:30%;left:90%;animation-delay:2s;"></div>
+  <div class="ball" style="width:12px;height:12px;background:#81c784;top:75%;left:5%;animation-delay:.5s;"></div>
+
+  <main>
+    <div class="hero">
+      <div class="logo">Orbloom</div>
+      <div class="sub">雨上がりのピンボール・インクリメンタル</div>
+      <a class="cta" href="game.html">▶ はじめる</a>
     </div>
-  </header>
 
-  <a class="play-btn" href="game.html">▶ ゲームをプレイ</a>
-
-  <section>
-    <h2>プロジェクト概要</h2>
-    <p>Steam で公開されている Plinko 系の放置ゲーム（Demo 版）の仕組みを、DLL の解析を通じて学習し、
-    その上で<strong>完全にオリジナルのコードとアセットで再実装</strong>したスタディ作品です。
-    公式の画像・音声・ソースコードは一切使用せず、ゲームデザインの参考としてのみ解析しています。</p>
-    <p style="margin-top:8px">実装範囲は <strong>Stage 1 のみ</strong>。ブラウザだけで動作し、インストールは不要です。</p>
-  </section>
-
-  <section>
-    <h2>技術スタック</h2>
-    <div class="tech">
-      <span>HTML5</span><span>CSS3</span><span>Canvas 2D</span><span>原生 JavaScript（フレームワーク不使用）</span>
-      <span>Web Audio API</span><span>localStorage</span><span>Node.js（テスト）</span><span>GitHub Pages</span>
+    <div class="shot-card">
+      <img src="docs/stage1_main.png" alt="Orbloom screenshot">
     </div>
-  </section>
 
-  <section>
-    <h2>実装した機能</h2>
-    <ul>
-      <li>Canvas 独自の物理エンジン：ボールの落下、釘との衝突・反射、バケツへの入射判定</li>
-      <li>2 通貨経済（コイン / ボール）と、それぞれに紐づく強化ショップ（自動ボール / 釘 / 全体）</li>
-      <li>解析で得た汎用数曲線エンジン <code>y = a·(c·x+d)^(1/b+f·x)+e</code> を再実装し、価格・効果曲線を駆動</li>
-      <li>レアリティ（5 段階）のドロップ確率、バケツのレベル成長、★によるロック解除</li>
-      <li>パーティクル（釘ヒット・入金演出）、Web Audio で合成した効果音、雨天テーマ背景</li>
-      <li>スキル（マルチボール / コイン雨 / ディスコ）、ランダムイベント（ゴールデンクッキー）</li>
-      <li>localStorage によるセーブ / ロード、ウィンドウリサイズ対応、一時停止</li>
-    </ul>
-  </section>
+    <div class="grid">
+      <div class="card"><div class="ic">🪣</div><h3>物理ギミック</h3><p>雨粒の釘を弾み、バケツに落ちる。オリジナルの物理エンジンで構築。</p></div>
+      <div class="card"><div class="ic">✨</div><h3>光る釘</h3><p>強化するたびに釘がひとつ光り、盤面全体が輝きだす。</p></div>
+      <div class="card"><div class="ic">🌧️</div><h3>雨音BGM</h3><p>雨音とピアノのBGM。まったり放置できる。</p></div>
+    </div>
+  </main>
 
-  <section>
-    <h2>画面</h2>
-    <img class="shot" src="docs/stage1_main.png" alt="ゲーム画面">
-    <img class="shot" src="docs/stage1_balls.png" alt="ボール落下と強化ショップ">
-  </section>
-
-  <section>
-    <h2>技術的な工夫・困難だった点</h2>
-    <ul>
-      <li><strong>数曲線の再現：</strong>原作のアセンブリを読み解き、20 個のアンカー値を再計算して 19 個が一致することを検証。価格が指数的に伸びる放置ゲームのバランスを再現。</li>
-      <li><strong>物理の安定化：</strong>ボールが釘の真上で静止しないよう、衝突点の法線と水平速度を見てランダムに押し出す補正を追加。</li>
-      <li><strong>テスト：</strong>コアロジックを <code>node tests/test_core.js</code> で 33 項目自動検証（確率・曲線・物理・経済・解放条件）。</li>
-      <li><strong>依存ゼロ：</strong>ビルドツールや外部ライブラリなしで、静的ファイルだけを GitHub Pages で公開。</li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>テスト結果</h2>
-    <p><code>node tests/test_core.js</code> → <strong>33 / 33 通過</strong>（確率分布・数式・物理・経済・解放条件）</p>
-  </section>
-
-  <a class="play-btn" href="game.html">▶ ゲームをプレイ</a>
-
-  <p class="note">
-    ※ 本作品は個人の学習および就職活動ポートフォリオとして制作したオリジナル実装であり、
-    特定の企業・ゲームの公式作品ではありません。記載の数値は学習目的での解析に基づく独立再現です。
-  </p>
-</div>
+  <footer>Orbloom — 個人制作インディーゲーム · ブラウザで即プレイ</footer>
 </body>
 </html>

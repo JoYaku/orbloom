@@ -33,10 +33,27 @@ class Game {
     this.running = true;
     this.load();
     this.upgrades.setStar(this.state.star);
+    this.syncPegTypes();
   }
 
   _buildBoard() {
     return buildBoard(this.canvas.width, this.canvas.height, this.config);
+  }
+
+  // 根据钉子升级等级重排哪些钉子是发光碰钱钉
+  syncPegTypes() {
+    const w = this.upgrades.getLevel('peg_white');
+    const g = this.upgrades.getLevel('peg_green');
+    applyPegTypes(this.board, w, g);
+  }
+
+  // 单个发光钉碰一次的金币（随升级等级增长）
+  pegReward(type) {
+    const w = this.upgrades.getLevel('peg_white');
+    const g = this.upgrades.getLevel('peg_green');
+    if (type === 'green') return Math.round(5 * (1 + 0.2 * g));
+    if (type === 'white') return Math.round(1 * (1 + 0.2 * w));
+    return 0;
   }
 
   dropBall(now, count = 1, auto = false) {
@@ -61,14 +78,16 @@ class Game {
 
   // 触发技能
   useSkill(id, now) {
-    if (this.skillCd[id] > now || !this.upgrades.isUnlocked(id)) return false;
-    this.skillCd[id] = now + this.upgrades.skillCooldown(id) * 1000;
-    if (id === 'multiball') {
-      const n = this.upgrades.skillValue('multiball');
+    if (!this.upgrades.isUnlocked(id)) return false;
+    const short = id.replace('skill_', '');
+    if (this.skillCd[short] > now) return false;
+    this.skillCd[short] = now + this.upgrades.skillCooldown(id) * 1000;
+    if (short === 'multiball') {
+      const n = this.upgrades.skillValue(id);
       this.dropBall(now, n, false);
-    } else if (id === 'goldrain') {
+    } else if (short === 'goldrain') {
       this.buffs.goldRainUntil = now + 15000;
-    } else if (id === 'disco') {
+    } else if (short === 'disco') {
       this.buffs.discoUntil = now + 30000;
     }
     SOUND.buy();
@@ -99,10 +118,21 @@ class Game {
     for (const ball of this.activeBalls) {
       if (ball.dead) continue;
       const r = stepPhysics(ball, this.board, this.config);
-      // 碰钉粒子 + 音效
+      // 碰钉粒子 + 闪光 + 音效 + 发光钉给钱
       if (r.hits && r.hits.length) {
         this.state.stats.pegHits += r.hits.length;
-        for (const h of r.hits) this.burst(h.x, h.y, '#cfe6ff', 3, 1.5);
+        for (const h of r.hits) {
+          if (h.peg) h.peg.flash = 1;
+          const reward = this.pegReward(h.peg ? h.peg.type : 'plain');
+          if (reward > 0) {
+            this.state.coins += reward;
+            this.state.stats.coinsEarned += reward;
+            this.risingNumbers.push({ x: h.x, y: h.y, value: reward, color: '#ffd54f', life: 0.8 });
+          }
+          const c = h.peg && h.peg.type === 'green' ? '#81c784'
+                  : h.peg && h.peg.type === 'white' ? '#b3e5fc' : '#cfe6ff';
+          this.burst(h.x, h.y, c, 3, 1.5);
+        }
         SOUND.peg();
       }
       if (r.captured) {
@@ -156,6 +186,7 @@ class Game {
     for (const n of this.risingNumbers) { n.y -= 0.8; n.life -= 0.015; }
     this.risingNumbers = this.risingNumbers.filter((n) => n.life > 0);
     for (const b of this.board.buckets) if (b.flash > 0) b.flash -= 0.05;
+    for (const p of this.board.pegs) if (p.flash > 0) p.flash -= 0.06;
     this.recentCoins = this.recentCoins.filter((r) => r.t > now - 5000);
 
     if (now - this.lastSave > 5000) { this.lastSave = now; this.save(); }

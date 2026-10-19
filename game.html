@@ -3,59 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PlinkIdle Stage 1 — 独立学習プロジェクト</title>
+<title>PlinkIdle Stage 1</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:"Hiragino Sans","Yu Gothic UI",sans-serif; background:#0a0e17; color:#e0e7f0;
-         display:flex; height:100vh; overflow:hidden; }
-  #gameArea { flex:1; position:relative; display:flex; align-items:center; justify-content:center; }
-  #gameCanvas { background:#0f1420; border-radius:8px; box-shadow:0 0 40px rgba(0,0,0,.6); max-width:100%; max-height:100%; }
-  #dropBtn { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:5;
-    padding:10px 28px; font-size:16px; font-weight:bold; color:#3a2a00;
-    background:linear-gradient(180deg,#ffd54f,#ffb300); border:none; border-radius:8px; cursor:pointer; }
-  #pauseBtn { position:absolute; top:14px; left:14px; z-index:5; padding:8px 14px; font-size:13px;
-    background:#27364f; color:#e0e7f0; border:1px solid #3a4d6e; border-radius:6px; cursor:pointer; }
-  #sidePanel { width:300px; background:#131a28; border-left:1px solid #1f2c42; padding:12px; overflow-y:auto; }
-  #sidePanel h2 { font-size:14px; color:#ffd54f; margin-bottom:8px; }
-  #skillBar { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
-  .skill { flex:1; min-width:80px; background:#2a1f3d; border:1px solid #6a4a8a; border-radius:6px;
-           padding:6px; text-align:center; font-size:11px; cursor:pointer; }
-  .skill.cd { opacity:.5; cursor:not-allowed; }
-  .skill .cd { color:#90caf9; font-size:10px; margin-top:2px; }
-  .groupTitle { font-size:12px; color:#90caf9; margin:10px 0 6px; padding-bottom:3px; border-bottom:1px solid #1f2c42; }
-  .upgrade { background:#1a2538; border:1px solid #27364f; border-radius:8px; padding:8px; margin-bottom:6px; }
-  .upgrade.locked { opacity:.45; }
-  .upgrade.maxed { border-color:#81c784; }
-  .upgrade .name { font-weight:bold; font-size:12px; }
-  .upgrade .lvl { float:right; color:#90a4bc; font-weight:normal; }
-  .upgrade .desc { font-size:10px; color:#90a4bc; margin:3px 0; line-height:1.4; }
-  .upgrade .meta { font-size:11px; color:#ffd54f; margin-bottom:5px; }
-  .upgrade button { width:100%; padding:6px; font-size:12px; font-weight:bold; color:#0f1420;
-    background:linear-gradient(180deg,#81c784,#66bb6a); border:none; border-radius:6px; cursor:pointer; }
-  .upgrade button:disabled { background:#37465f; color:#6b7a90; cursor:not-allowed; }
-  #saveStatus { font-size:10px; color:#6b7a90; margin-top:10px; text-align:center; }
-  .provenance { font-size:9px; color:#6b7a90; line-height:1.5; margin-top:10px; padding:8px; background:#0f1725; border-radius:6px; }
-  #portfolioLink { position:absolute; bottom:10px; left:10px; font-size:11px; color:#90caf9; z-index:5; }
-  @media (max-width:700px) { body { flex-direction:column; } #sidePanel { width:100%; height:40vh; } }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"MS Gothic","Yu Gothic UI",monospace; }
+  :root {
+    --bg:#150a24; --panel:#2a1848; --panel2:#3a2260; --border:#6a3fa0;
+    --hi:#ff5a8a; --red:#c9405a; --gold:#ffd54f; --text:#f0e6ff; --dim:#9a7fc0;
+  }
+  html,body { height:100%; background:var(--bg); color:var(--text); overflow:hidden; }
+  body { display:flex; flex-direction:column; }
+
+  /* ===== 顶部栏 ===== */
+  #topBar { height:44px; background:var(--panel); border-bottom:2px solid var(--border);
+    display:flex; align-items:stretch; gap:0; flex-shrink:0; }
+  .tb-left { display:flex; align-items:center; gap:6px; padding:0 8px; }
+  .tb-btn { width:32px; height:32px; background:var(--panel2); border:2px solid var(--border);
+    color:var(--text); cursor:pointer; font-size:14px; border-radius:3px; }
+  .tb-btn.red { background:var(--red); border-color:#e0607a; }
+  .tb-rank { display:flex; align-items:center; gap:6px; padding:0 10px; background:var(--panel2);
+    border:2px solid var(--border); border-radius:4px; font-size:13px; }
+  .tb-progress { flex:1; display:flex; flex-direction:column; justify-content:center; padding:0 14px; }
+  .tb-progress .label { font-size:12px; color:var(--gold); }
+  .tb-progress .bar { height:10px; background:#0d0618; border:1px solid var(--border); margin-top:3px; }
+  .tb-progress .fill { height:100%; background:linear-gradient(90deg,#a04ad0,#ff5a8a); width:0%; }
+  .tb-stage { display:flex; align-items:center; gap:8px; padding:0 10px; font-size:14px; font-weight:bold; }
+  .tb-arrow { width:36px; height:32px; background:var(--red); border:2px solid #e0607a; color:#fff;
+    cursor:pointer; border-radius:3px; font-weight:bold; }
+
+  /* ===== 主体 ===== */
+  #main { flex:1; display:flex; min-height:0; }
+  #gameWrap { flex:1; position:relative; min-width:0; }
+  #gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  /* 右上 buff 指示 */
+  #buffBadge { position:absolute; top:50px; right:12px; background:var(--panel); border:2px solid var(--gold);
+    border-radius:6px; padding:6px 10px; text-align:center; display:none; z-index:5; }
+  #buffBadge .time { font-size:16px; font-weight:bold; color:var(--gold); }
+  #buffBadge .mult { font-size:13px; color:var(--hi); }
+
+  /* ===== 右侧面板 ===== */
+  #side { width:300px; background:var(--panel); border-left:2px solid var(--border);
+    display:flex; flex-direction:column; overflow-y:auto; flex-shrink:0; }
+  #currency { display:flex; gap:8px; padding:10px; }
+  .cur { flex:1; background:var(--panel2); border:2px solid var(--border); border-radius:5px;
+    padding:6px 8px; font-size:13px; display:flex; align-items:center; gap:6px; }
+  .cur .ic { font-size:16px; }
+  .sec-title { background:var(--panel2); border-top:2px solid var(--border); border-bottom:2px solid var(--border);
+    padding:6px 10px; font-size:13px; font-weight:bold; color:var(--text); }
+  .slot-row { display:flex; gap:6px; padding:10px; }
+  .slot { flex:1; aspect-ratio:1; background:var(--bg); border:2px solid var(--border); border-radius:5px;
+    position:relative; min-height:54px; }
+  .slot .lvl { position:absolute; top:2px; left:4px; font-size:10px; color:var(--dim); }
+  .slot .arrow { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:22px; color:var(--gold); cursor:pointer; }
+  .slot.active { background:var(--red); border-color:#e0607a; }
+  .slot.locked { opacity:.45; }
+  .slot .cost { position:absolute; bottom:2px; left:0; right:0; text-align:center; font-size:10px; color:var(--gold); }
+  .slot-info { text-align:center; font-size:11px; color:var(--dim); padding:0 10px 8px; }
+
+  /* 全体升级列表 */
+  .gen-item { background:var(--panel2); border:2px solid var(--border); border-radius:5px;
+    margin:8px 10px; padding:8px; display:flex; align-items:center; gap:8px; }
+  .gen-item .info { flex:1; }
+  .gen-item .name { font-size:13px; }
+  .gen-item .speed { font-size:11px; color:var(--dim); }
+  .gen-item .cost { font-size:12px; color:var(--gold); }
+  .gen-item .buy { width:34px; height:34px; background:var(--red); border:2px solid #e0607a; color:#fff;
+    border-radius:4px; cursor:pointer; font-size:18px; }
+  .gen-item.locked { opacity:.5; }
+
+  /* ===== 底部栏 ===== */
+  #bottomBar { height:64px; background:var(--panel); border-top:2px solid var(--border);
+    display:flex; align-items:stretch; flex-shrink:0; }
+  #menuBtn { width:44px; background:var(--panel2); border-right:2px solid var(--border); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:18px; }
+  #bucketRow { flex:1; display:flex; align-items:flex-end; gap:2px; padding:0 6px; }
+  .bucket { flex:1; background:var(--bg); border:2px solid var(--border); border-bottom:none;
+    border-radius:3px 3px 0 0; height:48px; position:relative; text-align:center; padding-top:4px; font-size:13px; }
+  .bucket.hl { background:#8a6a1a; border-color:var(--gold); }
+  #ballProg { display:flex; flex-direction:column; justify-content:center; padding:0 12px; font-size:12px;
+    color:var(--gold); border-left:2px solid var(--border); }
+  #stars { display:flex; align-items:center; gap:2px; padding:0 10px; font-size:22px; color:var(--gold);
+    border-left:2px solid var(--border); }
+  #dropBtn { width:120px; background:var(--red); border:2px solid #e0607a; color:#fff; cursor:pointer;
+    font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px; }
+  #dropBtn:active { background:#a0304a; }
+
+  .note { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--dim); z-index:4; }
+  @media (max-width:900px) { #side { width:220px; } }
 </style>
 </head>
 <body>
-  <div id="gameArea">
-    <button id="pauseBtn">⏸ 一時停止</button>
-    <button id="dropBtn">▼ ボールを落とす</button>
-    <canvas id="gameCanvas" width="520" height="720"></canvas>
-    <a id="portfolioLink" href="index.html">← ポートフォリオへ戻る</a>
+  <div id="topBar">
+    <div class="tb-left">
+      <button class="tb-btn red" id="pauseBtn">⏸</button>
+      <button class="tb-btn" id="soundBtn">🔊</button>
+      <div class="tb-rank">🏆 <span id="rankLabel">ランク0</span></div>
+    </div>
+    <div class="tb-progress">
+      <div class="label"><span id="ballRatio">0 / 1980</span>（ランク1）</div>
+      <div class="bar"><div class="fill" id="topFill"></div></div>
+    </div>
+    <div class="tb-stage">ステージ 1-1 <button class="tb-arrow">▶</button></div>
   </div>
-  <div id="sidePanel">
-    <h2>スキル</h2>
-    <div id="skillBar"></div>
-    <div id="upgradeList"></div>
-    <div id="saveStatus">自動保存中…</div>
-    <div class="provenance">
-      本作品は学習目的の独立実装であり、公式作品ではありません。<br>
-      数値はリバースエンジニアリングにより独自再現したものです。
+
+  <div id="main">
+    <div id="gameWrap">
+      <canvas id="gameCanvas" width="520" height="720"></canvas>
+      <div id="buffBadge"><div class="time" id="buffTime">4s</div><div class="mult">5x</div></div>
+    </div>
+    <div id="side">
+      <div id="currency">
+        <div class="cur"><span class="ic">🔵</span><span id="curBalls">0</span></div>
+        <div class="cur"><span class="ic">🪙</span><span id="curCoins">0</span></div>
+      </div>
+
+      <div class="sec-title">オートボールアップグレード</div>
+      <div class="slot-row" id="autoSlots"></div>
+      <div class="slot-info" id="autoInfo">—/min</div>
+
+      <div class="sec-title">釘アップグレード</div>
+      <div class="slot-row" id="pegSlots"></div>
+      <div class="slot-info" id="pegInfo">—</div>
+
+      <div class="sec-title">全体アップグレード</div>
+      <div id="generalList"></div>
     </div>
   </div>
+
+  <div id="bottomBar">
+    <div id="menuBtn">☰</div>
+    <div id="bucketRow"></div>
+    <div id="ballProg"><span id="bottomBalls">0 / 1980</span></div>
+    <div id="stars">★★☆</div>
+    <button id="dropBtn">⬇ ドロップ</button>
+  </div>
+
   <script src="src/config.js"></script>
   <script src="src/curves.js"></script>
   <script src="src/physics.js"></script>

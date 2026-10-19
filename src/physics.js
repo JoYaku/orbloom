@@ -24,6 +24,17 @@ function stepPhysics(ball, board, config) {
   ball.y += ball.vy;
   ball.rotation += ball.vx * 0.05;
 
+  // 防卡：长时间位置不变就强制推一把
+  if (ball._lastY === undefined) { ball._lastY = ball.y; ball._stuck = 0; }
+  if (Math.abs(ball.y - ball._lastY) < 0.3 && ball.y > 80) ball._stuck++;
+  else ball._stuck = 0;
+  ball._lastY = ball.y;
+  if (ball._stuck > 90) {
+    ball.vx += (Math.random() - 0.5) * 3;
+    ball.vy += 1;
+    ball._stuck = 0;
+  }
+
   if (ball.x - ball.radius < board.left) {
     ball.x = board.left + ball.radius;
     ball.vx = Math.abs(ball.vx) * p.wallBounce;
@@ -49,7 +60,7 @@ function stepPhysics(ball, board, config) {
         ball.vx += (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.5);
       }
       ball.pegHits++;
-      hits.push({ x: peg.x, y: peg.y });
+      hits.push({ x: peg.x, y: peg.y, peg });
     }
   }
 
