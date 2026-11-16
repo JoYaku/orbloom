@@ -2,7 +2,7 @@
 <html lang="ja" translate="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Orbloom</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:"MS Gothic","Yu Gothic UI",monospace; }
@@ -11,11 +11,18 @@
     --hi:#ff5a8a; --red:#c9405a; --gold:#ffd54f; --text:#f0e6ff; --dim:#9a7fc0;
   }
   html,body { height:100%; background:#000; color:var(--text); overflow:hidden; }
-  body { display:flex; align-items:center; justify-content:center; }
+  body { position:relative; }
 
-  #menu { width:1280px; height:720px; flex-shrink:0; position:relative; overflow:hidden;
+  #menu { width:1280px; height:720px; flex-shrink:0; position:absolute; left:50%; top:50%; overflow:hidden;
     background:radial-gradient(1200px 700px at 70% 20%, #2a1444 0%, #150a24 55%, #0a0516 100%);
-    display:flex; flex-direction:column; }
+    display:flex; flex-direction:column; transform-origin:center center; }
+
+  #rotateHint { position:fixed; inset:0; background:#000; z-index:300; display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    color:var(--text); font-size:20px; text-align:center; padding:20px; }
+  #rotateHint .ic { font-size:44px; }
+  body.portrait #rotateHint { display:flex; }
+  body.portrait #menu { display:none; }
 
   /* ---- 背景装饰：星点 / 彩虹 / 月亮 ---- */
   .star { position:absolute; background:#fff; border-radius:50%; opacity:.7; }
@@ -154,6 +161,8 @@
   <div class="version">Version: 0.8.5-demo</div>
 </div>
 
+<div id="rotateHint"><div class="ic">📱</div><div>画面を横向きにしてください</div></div>
+
 <script>
   // 星点背景
   (function(){
@@ -200,6 +209,20 @@
   document.getElementById('stage1').addEventListener('click', function(){
     location.href = 'game.html';
   });
+
+  // 等比缩放适配（横屏完整可见，不变形）
+  (function(){
+    var menu = document.getElementById('menu');
+    function fit(){
+      var portrait = window.innerHeight > window.innerWidth && window.innerWidth < 900;
+      document.body.classList.toggle('portrait', portrait);
+      var s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+      menu.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    fit();
+  })();
 </script>
 </body>
 </html>

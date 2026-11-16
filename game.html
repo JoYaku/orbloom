@@ -2,7 +2,7 @@
 <html lang="ja" translate="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>PlinkIdle Stage 1</title>
 <script>
 window.addEventListener('error', function(e){
@@ -19,8 +19,17 @@ window.addEventListener('error', function(e){
     --hi:#ff5a8a; --red:#c9405a; --gold:#ffd54f; --text:#f0e6ff; --dim:#9a7fc0;
   }
   html,body { height:100%; background:#000; color:var(--text); overflow:hidden; }
-  body { display:flex; align-items:center; justify-content:center; }
-  #stage { width:1280px; height:720px; flex-shrink:0; display:flex; flex-direction:column; }
+  body { position:relative; }
+  #stage { width:1280px; height:720px; flex-shrink:0; display:flex; flex-direction:column;
+    position:absolute; left:50%; top:50%; transform-origin:center center; }
+
+  /* 竖屏横放提示 */
+  #rotateHint { position:fixed; inset:0; background:#000; z-index:300; display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    color:var(--text); font-size:20px; text-align:center; padding:20px; }
+  #rotateHint .ic { font-size:44px; }
+  body.portrait #rotateHint { display:flex; }
+  body.portrait #stage, body.portrait #rewardModal { display:none; }
 
   /* ===== 顶部栏 ===== */
   #topBar { height:44px; background:var(--panel); border-bottom:2px solid var(--border);
@@ -180,17 +189,33 @@ window.addEventListener('error', function(e){
   </div>
 </div>
 
-  <script src="src/config.js?v=116"></script>
-  <script src="src/curves.js?v=116"></script>
-  <script src="src/physics.js?v=116"></script>
-  <script src="src/board.js?v=116"></script>
-  <script src="src/economy.js?v=116"></script>
-  <script src="src/upgrades.js?v=116"></script>
-  <script src="src/save.js?v=116"></script>
-  <script src="src/audio.js?v=116"></script>
-  <script src="src/game.js?v=116"></script>
-  <script src="src/ui.js?v=116"></script>
-  <script src="src/main.js?v=116"></script>
+<div id="rotateHint"><div class="ic">📱</div><div>画面を横向きにしてください</div></div>
+
+  <script src="src/config.js?v=121"></script>
+  <script src="src/curves.js?v=121"></script>
+  <script src="src/physics.js?v=121"></script>
+  <script src="src/board.js?v=121"></script>
+  <script src="src/economy.js?v=121"></script>
+  <script src="src/upgrades.js?v=121"></script>
+  <script src="src/save.js?v=121"></script>
+  <script src="src/audio.js?v=121"></script>
+  <script src="src/game.js?v=121"></script>
+  <script src="src/ui.js?v=121"></script>
+  <script src="src/main.js?v=121"></script>
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  function fit(){
+    var portrait = window.innerHeight > window.innerWidth && window.innerWidth < 900;
+    document.body.classList.toggle('portrait', portrait);
+    var s = Math.min(window.innerWidth/1280, window.innerHeight/720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  fit();
+})();
+</script>
 </div>
 </body>
 </html>
