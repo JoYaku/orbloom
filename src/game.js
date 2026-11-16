@@ -15,8 +15,10 @@ class Game {
     this.state = {
       coins: 0, balls: 0, totalBalls: 0,
       star: 0, stage1Complete: false,
+      rewards: { doubleBallChance: 0, manualMult: 1, extraBucketCap: 0 },
       stats: { drops: 0, captured: 0, coinsEarned: 0, pegHits: 0 },
     };
+    this.pendingReward = false;
     this.activeBalls = [];
     this.particles = [];
     this.risingNumbers = [];
@@ -57,14 +59,23 @@ class Game {
   }
 
   dropBall(now, count = 1, auto = false) {
-    for (let i = 0; i < count; i++) {
-      const t = rollRarity(this.config, this.upgrades.getRarityChance());
-      const x = this.canvas.width / 2 + (Math.random() - 0.5) * 40;
-      const ball = new Ball(x, this.board.dropY, t, this.config.board.ballRadius);
-      ball.auto = auto;
-      this.activeBalls.push(ball);
-      this.state.stats.drops++;
-    }
+    for (let i = 0; i < count; i++) this._spawnBall(now, auto);
+    // ダブルボール確率：手动掉落时概率追加一球
+    if (!auto && Math.random() < this.state.rewards.doubleBallChance) this._spawnBall(now, auto);
+  }
+
+  _spawnBall(now, auto) {
+    const t = rollRarity(this.config, this.upgrades.getRarityChance());
+    const x = this.canvas.width / 2 + (Math.random() - 0.5) * 40;
+    const ball = new Ball(x, this.board.dropY, t, this.config.board.ballRadius);
+    ball.auto = auto;
+    ball.manual = !auto;
+    this.activeBalls.push(ball);
+    this.state.stats.drops++;
+  }
+
+  getMaxBucketLevel() {
+    return this.upgrades.getMaxBucketLevel() + (this.state.rewards.extraBucketCap || 0);
   }
 
   manualDrop(now) {
@@ -104,7 +115,7 @@ class Game {
   }
 
   update(now) {
-    if (!this.running) return;
+    if (!this.running || this.pendingReward) return;
 
     // 自动掉落
     if (this.upgrades.isAutoUnlocked() && now - this.lastAutoDrop >= this.upgrades.getAutoInterval()) {
@@ -137,15 +148,16 @@ class Game {
       }
       if (r.captured) {
         const b = r.bucket;
-        const coins = Math.round(b.level * ball.rarity.value * goldMult * discoMult * 100) / 100;
-        const balls = b.level * ball.rarity.value;
+        const manualMult = ball.manual ? (this.state.rewards.manualMult || 1) : 1;
+        const coins = Math.round(b.level * ball.rarity.value * goldMult * discoMult * manualMult * 100) / 100;
+        const balls = b.level * ball.rarity.value * manualMult;
         this.state.coins += coins;
         this.state.balls += balls;
         this.state.totalBalls++;
         this.state.stats.captured++;
         this.state.stats.coinsEarned += coins;
         b.flash = 1;
-        addBucketBalls(b, 1, this.config, this.upgrades.getMaxBucketLevel());
+        addBucketBalls(b, 1, this.config, this.getMaxBucketLevel());
         this.burst(b.x, b.y, '#ffd54f', 8, 3); // 金币粒子
         this.burst(b.x, b.y - 8, ball.rarity.color, 6, 2.5); // 球币粒子
         this.risingNumbers.push({ x: b.x, y: b.y, value: coins, color: ball.rarity.color, life: 1 });
@@ -163,6 +175,7 @@ class Game {
       this.upgrades.setStar(this.state.star);
       if (this.state.star >= 3) this.state.stage1Complete = true;
       SOUND.star();
+      this.pendingReward = true; // 弹出三选一奖励
     }
 
     // 金饼干
@@ -192,6 +205,16 @@ class Game {
     if (now - this.lastSave > 5000) { this.lastSave = now; this.save(); }
   }
 
+  // 三选一奖励生效
+  applyReward(id) {
+    const r = this.state.rewards;
+    if (id === 'double_ball') r.doubleBallChance += 0.02;
+    else if (id === 'manual_mult') r.manualMult += 1;
+    else if (id === 'max_bucket_up') r.extraBucketCap += 1;
+    this.pendingReward = false;
+    this.save();
+  }
+
   clickGoldenCookie(now) {
     if (!this.goldenCookie.active) return false;
     this.state.balls += this.config.events.goldenCookie.balls;
@@ -217,6 +240,7 @@ class Game {
     this.state.totalBalls = d.totalBalls ?? 0;
     this.state.star = d.star ?? 0;
     this.state.stats = d.stats || this.state.stats;
+    if (d.rewards) this.state.rewards = { ...this.state.rewards, ...d.rewards };
     this.upgrades.deserialize(d.upgrades);
     if (d.buckets) d.buckets.forEach((b, i) => {
       if (this.board.buckets[i]) {

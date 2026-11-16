@@ -9,11 +9,11 @@ let _rain = null;
 function render(ctx, game, now) {
   const W = game.canvas.width, H = game.canvas.height;
 
-  // 天空
+  // 天空（原作晴天浅蓝灰渐变）
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#3a5a7a');
-  sky.addColorStop(0.6, '#2a4a6a');
-  sky.addColorStop(1, '#1a3a5a');
+  sky.addColorStop(0, '#d6e2ec');
+  sky.addColorStop(0.55, '#93adc1');
+  sky.addColorStop(1, '#6d8ca3');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
@@ -21,11 +21,8 @@ function render(ctx, game, now) {
   drawRainbowArc(ctx, W, H);
   drawRainDrops(ctx, W, H, now);
 
-  // 草地
-  ctx.fillStyle = '#4a7a3a';
-  ctx.fillRect(0, H - 30, W, 30);
-  ctx.fillStyle = '#5a8a4a';
-  for (let x = 0; x < W; x += 8) ctx.fillRect(x, H - 30, 4, 4);
+  // 草地（底部起伏草坡）
+  drawGrass(ctx, W, H);
 
   drawHudCanvas(ctx, game, W, now);
 
@@ -66,28 +63,54 @@ function render(ctx, game, now) {
 
 function drawDiagonalLight(ctx, W, H, now) {
   ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.strokeStyle = '#cfe8ff';
-  ctx.lineWidth = 30;
-  for (let i = -2; i < 6; i++) {
-    const x = i * 120 + (now * 0.01 % 120);
+  ctx.globalAlpha = 0.10;
+  ctx.strokeStyle = '#eaf4ff';
+  ctx.lineWidth = 36;
+  for (let i = -2; i < 5; i++) {
+    const x = i * 150 + (now * 0.008 % 150);
     ctx.beginPath();
     ctx.moveTo(x, 0);
-    ctx.lineTo(x - 200, H);
+    ctx.lineTo(x - 220, H);
     ctx.stroke();
   }
   ctx.restore();
 }
 
+function drawGrass(ctx, W, H) {
+  const gh = 38;
+  const top = H - gh;
+  // 草坡底色（起伏波浪）
+  ctx.fillStyle = '#4f7d3a';
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  ctx.lineTo(0, top + 6);
+  for (let x = 0; x <= W; x += 20) {
+    ctx.quadraticCurveTo(x + 10, top - 6, x + 20, top + 4);
+  }
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fill();
+  // 草尖
+  ctx.strokeStyle = '#6da352';
+  ctx.lineWidth = 2;
+  for (let x = 6; x < W; x += 14) {
+    const h = 6 + (x % 3) * 2;
+    ctx.beginPath();
+    ctx.moveTo(x, top + 8);
+    ctx.lineTo(x, top + 8 - h);
+    ctx.stroke();
+  }
+}
+
 function drawRainbowArc(ctx, W, H) {
   ctx.save();
-  ctx.globalAlpha = 0.5;
-  const colors = ['#ff6b6b', '#ffa54f', '#ffd54f', '#81c784', '#64b5f6', '#b39ddb'];
+  ctx.globalAlpha = 0.55;
+  const colors = ['#e86a6a', '#f09a55', '#f2cf55', '#7fc47f', '#6fa8d8', '#9a86c8'];
   colors.forEach((c, i) => {
     ctx.strokeStyle = c;
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 7;
     ctx.beginPath();
-    ctx.arc(W * 1.05, H * 0.5, H * 0.7 + i * 9, Math.PI * 0.7, Math.PI * 1.3);
+    ctx.arc(W * 1.16, H * 0.42, H * 0.78 + i * 9, Math.PI * 0.72, Math.PI * 1.28);
     ctx.stroke();
   });
   ctx.restore();
@@ -96,30 +119,30 @@ function drawRainbowArc(ctx, W, H) {
 function drawRainDrops(ctx, W, H, now) {
   if (!_rain) {
     _rain = [];
-    for (let i = 0; i < 50; i++) _rain.push({ x: Math.random()*W, y: Math.random()*H, s: 5+Math.random()*8 });
+    for (let i = 0; i < 22; i++) _rain.push({ x: Math.random()*W, y: Math.random()*H, s: 4+Math.random()*6 });
   }
-  ctx.strokeStyle = 'rgba(200,225,255,0.4)';
+  ctx.strokeStyle = 'rgba(230,245,255,0.35)';
   ctx.lineWidth = 1.5;
   for (const d of _rain) {
     d.y += d.s; d.x -= 1;
     if (d.y > H) { d.y = -10; d.x = Math.random()*W; }
     ctx.beginPath();
     ctx.moveTo(d.x, d.y);
-    ctx.lineTo(d.x - 2, d.y + 12);
+    ctx.lineTo(d.x - 2, d.y + 11);
     ctx.stroke();
   }
 }
 
 function drawHudCanvas(ctx, game, W, H) {
-  // canvas 内不画顶部栏（HTML 覆盖），只画桶上方的 Y 形支架提示
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  // 桶上方的 Y 形白色支架
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   ctx.lineWidth = 2;
   for (const b of game.board.buckets) {
     ctx.beginPath();
-    ctx.moveTo(b.x - b.width/2 + 4, b.y);
-    ctx.lineTo(b.x - b.width/4, b.y - 12);
-    ctx.moveTo(b.x + b.width/2 - 4, b.y);
-    ctx.lineTo(b.x + b.width/4, b.y - 12);
+    ctx.moveTo(b.x - b.width/2 + 3, b.y);
+    ctx.lineTo(b.x, b.y - 14);
+    ctx.moveTo(b.x + b.width/2 - 3, b.y);
+    ctx.lineTo(b.x, b.y - 14);
     ctx.stroke();
   }
 }
@@ -130,8 +153,7 @@ function drawPeg(ctx, peg) {
   ctx.save();
   if (t === 'white') { ctx.fillStyle = '#e8f4ff'; ctx.shadowColor = '#b3e5fc'; ctx.shadowBlur = 8 + flash*20; }
   else if (t === 'green') { ctx.fillStyle = '#9ce89c'; ctx.shadowColor = '#81c784'; ctx.shadowBlur = 12 + flash*24; }
-  else { ctx.fillStyle = 'rgba(220,235,255,0.85)'; }
-  ctx.strokeStyle = t === 'plain' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.95)';
+  ctx.strokeStyle = t === 'plain' ? 'rgba(255,255,255,0.30)' : 'rgba(255,255,255,0.95)';
   ctx.lineWidth = 1.5;
   // 空心水滴形
   ctx.beginPath();
@@ -139,7 +161,7 @@ function drawPeg(ctx, peg) {
   ctx.quadraticCurveTo(peg.x + peg.radius + 1, peg.y, peg.x, peg.y + peg.radius + 1);
   ctx.quadraticCurveTo(peg.x - peg.radius - 1, peg.y, peg.x, peg.y - peg.radius - 3);
   if (t === 'plain') {
-    ctx.fillStyle = 'rgba(220,235,255,0.15)';
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fill();
   } else ctx.fill();
   ctx.stroke();
@@ -147,26 +169,28 @@ function drawPeg(ctx, peg) {
 }
 
 function drawBucket(ctx, bucket, config) {
-  const w = bucket.width, x = bucket.x, y = bucket.y, h = 42;
+  const w = bucket.width, x = bucket.x, y = bucket.y, h = 36;
   const flash = bucket.flash > 0 ? bucket.flash : 0;
-  const hl = bucket.progress > 0.2 || flash > 0;
-  // 桶底色
-  ctx.fillStyle = hl ? '#8a6a1a' : '#2a1848';
+  const hot = flash > 0;
+  // 桶底色（普通深紫灰；命中瞬间红色高亮）
+  ctx.fillStyle = hot ? '#c9405a' : '#33244a';
   ctx.fillRect(x - w/2, y, w, h);
   // 进度填充（从底部往上一点点涨）
   const need = ballsNeededForNextLevel(bucket, config);
   const fill = Math.min(1, bucket.progress / need);
   if (fill > 0.01) {
-    ctx.fillStyle = 'rgba(255,213,79,0.5)';
+    ctx.fillStyle = 'rgba(255,213,79,0.45)';
     ctx.fillRect(x - w/2 + 2, y + h - h*fill - 2, w - 4, h*fill);
   }
-  ctx.strokeStyle = hl ? '#ffd54f' : '#6a3fa0';
+  ctx.strokeStyle = hot ? '#e0607a' : '#6a5a8a';
   ctx.lineWidth = 2;
   ctx.strokeRect(x - w/2, y, w, h);
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 13px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(bucket.level, x, y + 18);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(bucket.level, x, y + h/2);
+  ctx.textBaseline = 'alphabetic';
 }
 
 function drawBall(ctx, ball) {

@@ -17,6 +17,7 @@ function saveGame(state, upgrades, board) {
       level: b.level, progress: b.progress, hits: b.hits,
     })) : [],
     stats: state.stats || {},
+    rewards: state.rewards || { doubleBallChance: 0, manualMult: 1, extraBucketCap: 0 },
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(data));

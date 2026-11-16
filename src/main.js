@@ -11,6 +11,7 @@ window.game = game;
 const pauseBtn = document.getElementById('pauseBtn');
 const dropBtn = document.getElementById('dropBtn');
 const soundBtn = document.getElementById('soundBtn');
+const menuBtn = document.getElementById('menuBtn');
 const autoSlots = document.getElementById('autoSlots');
 const pegSlots = document.getElementById('pegSlots');
 const generalList = document.getElementById('generalList');
@@ -18,11 +19,50 @@ const autoInfo = document.getElementById('autoInfo');
 const pegInfo = document.getElementById('pegInfo');
 const buffBadge = document.getElementById('buffBadge');
 const buffTime = document.getElementById('buffTime');
+const rewardModal = document.getElementById('rewardModal');
+const rewardCards = document.getElementById('rewardCards');
+const rewardConfirm = document.getElementById('rewardConfirm');
+let selectedReward = null;
+
+// ---- 三选一奖励弹窗 ----
+function renderRewardChoices() {
+  rewardCards.innerHTML = '';
+  selectedReward = null;
+  rewardConfirm.classList.remove('enabled');
+  for (const c of CONFIG.rewards.choices) {
+    const div = document.createElement('div');
+    div.className = 'r-card';
+    div.innerHTML = `<div class="r-icon">${c.icon}</div>
+      <div class="r-name">${c.name}</div>
+      <div class="r-desc">${c.desc}</div>
+      <div class="r-value">${c.value}</div>`;
+    div.addEventListener('click', () => {
+      selectedReward = c.id;
+      rewardCards.querySelectorAll('.r-card').forEach(el => el.classList.remove('sel'));
+      div.classList.add('sel');
+      rewardConfirm.classList.add('enabled');
+      SOUND.buy();
+    });
+    rewardCards.appendChild(div);
+  }
+}
+rewardConfirm.addEventListener('click', () => {
+  if (!selectedReward) return;
+  game.applyReward(selectedReward);
+  rewardModal.classList.remove('open');
+});
+function syncRewardModal() {
+  if (game.pendingReward && !rewardModal.classList.contains('open')) {
+    renderRewardChoices();
+    rewardModal.classList.add('open');
+  }
+}
 
 pauseBtn.addEventListener('click', () => {
   game.running = !game.running;
   pauseBtn.textContent = game.running ? '⏸' : '▶';
 });
+menuBtn.addEventListener('click', () => { location.href = 'index.html'; });
 dropBtn.addEventListener('click', () => { SOUND.ensureBGM(); game.manualDrop(performance.now()); });
 let muted = false;
 soundBtn.addEventListener('click', () => { muted = !muted; SOUND.mute(muted); soundBtn.textContent = muted ? '🔇' : '🔊'; });
@@ -160,6 +200,7 @@ resize();
 
 let _lastUi = 0;
 function loop(now) {
+  syncRewardModal();
   game.update(now);
   render(canvas.getContext('2d'), game, now);
   if (now - _lastUi > 250) {

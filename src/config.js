@@ -11,7 +11,7 @@ const CONFIG = {
     pegRows: 9,
     altRowsOneLess: true,
     pegSpacingX: 44,
-    pegSpacingY: 56,
+    pegSpacingY: 52,
     pegRadius: 5,
     buckets: 14,
     topMargin: 50,
@@ -130,6 +130,15 @@ const CONFIG = {
   },
 
   offline: { efficiency: 0.40, coinShare: 0.20, capMinutes: 60 }, // [V] 档位
+
+  // ---- 三选一奖励（[O] 原作截图2：升级后弹出） ----
+  rewards: {
+    choices: [
+      { id: 'double_ball', name: 'ダブルボール確率', desc: '確率でもう1つ玉が追加で落ちる', value: '+2%', icon: '⚈' },
+      { id: 'manual_mult', name: 'マニュアルボール倍率', desc: '手動で落とした玉の価値アップ', value: '+100%', icon: '✋' },
+      { id: 'max_bucket_up', name: 'Lv.Maxバケツ', desc: '全バケツの上限レベル+1', value: '+1', icon: '🪣' },
+    ],
+  },
 };
 
 if (typeof module !== 'undefined') module.exports = { CONFIG };

@@ -94,6 +94,14 @@ console.log('=== 7. 数字格式化 ===');
   assert(formatNumber(1500)==='1.50K', '1500→1.50K');
 }
 
+console.log('=== 8. 三选一奖励配置 ===');
+{
+  const ids = CONFIG.rewards.choices.map(c => c.id);
+  assert(ids.length===3, '奖励 3 选 1');
+  assert(ids.includes('double_ball') && ids.includes('manual_mult') && ids.includes('max_bucket_up'), '三个奖励 id 齐全');
+  assert(CONFIG.rewards.choices.every(c => c.name && c.value), '名称/数值齐全');
+}
+
 console.log('\n==============================');
 console.log(`测试结果: ${pass} 通过, ${fail} 失败`);
 console.log('==============================');

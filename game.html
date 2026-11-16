@@ -99,6 +99,28 @@ window.addEventListener('error', function(e){
   #dropBtn:active { background:#a0304a; }
 
   .note { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--dim); z-index:4; }
+
+  /* ===== 三选一奖励弹窗 ===== */
+  .modal-mask { position:fixed; inset:0; background:rgba(10,5,20,0.72); display:none;
+    align-items:center; justify-content:center; z-index:200; }
+  .modal-mask.open { display:flex; }
+  .modal-box { background:var(--panel); border:3px solid var(--border); border-radius:10px;
+    padding:22px 28px 26px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .modal-title { background:var(--panel2); border:2px solid var(--border); border-radius:6px;
+    padding:8px 26px; font-size:18px; font-weight:bold; color:var(--text); }
+  .reward-cards { display:flex; gap:18px; }
+  .r-card { width:160px; background:#1a0f30; border:2px solid var(--border); border-radius:8px;
+    padding:16px 12px; display:flex; flex-direction:column; align-items:center; gap:10px; cursor:pointer; }
+  .r-card .r-icon { width:64px; height:64px; background:var(--panel2); border:2px solid var(--border);
+    border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .r-card .r-name { font-size:14px; font-weight:bold; text-align:center; line-height:1.3; }
+  .r-card .r-desc { font-size:10px; color:var(--dim); text-align:center; line-height:1.3; }
+  .r-card .r-value { font-size:18px; font-weight:bold; color:var(--gold); }
+  .r-card.sel { border-color:var(--hi); box-shadow:0 0 12px rgba(255,90,138,0.5); }
+  #rewardConfirm { width:240px; padding:12px 0; background:var(--panel2); border:2px solid var(--border);
+    color:var(--dim); font-family:inherit; font-size:18px; font-weight:bold; border-radius:6px; cursor:not-allowed; }
+  #rewardConfirm.enabled { color:#fff; border-color:var(--hi); background:var(--red); cursor:pointer; }
+  #rewardConfirm.enabled:active { background:#a0304a; }
   @media (max-width:900px) { #side { width:220px; } }
 </style>
 </head>
@@ -148,18 +170,27 @@ window.addEventListener('error', function(e){
     <div id="stars">★★☆</div>
     <button id="dropBtn">⬇ ドロップ</button>
   </div>
+</div>
 
-  <script src="src/config.js"></script>
-  <script src="src/curves.js"></script>
-  <script src="src/physics.js"></script>
-  <script src="src/board.js"></script>
-  <script src="src/economy.js"></script>
-  <script src="src/upgrades.js"></script>
-  <script src="src/save.js"></script>
-  <script src="src/audio.js"></script>
-  <script src="src/game.js"></script>
-  <script src="src/ui.js"></script>
-  <script src="src/main.js"></script>
+<div id="rewardModal" class="modal-mask">
+  <div class="modal-box">
+    <div class="modal-title">ひとつ選んでください</div>
+    <div class="reward-cards" id="rewardCards"></div>
+    <button id="rewardConfirm">決定</button>
+  </div>
+</div>
+
+  <script src="src/config.js?v=116"></script>
+  <script src="src/curves.js?v=116"></script>
+  <script src="src/physics.js?v=116"></script>
+  <script src="src/board.js?v=116"></script>
+  <script src="src/economy.js?v=116"></script>
+  <script src="src/upgrades.js?v=116"></script>
+  <script src="src/save.js?v=116"></script>
+  <script src="src/audio.js?v=116"></script>
+  <script src="src/game.js?v=116"></script>
+  <script src="src/ui.js?v=116"></script>
+  <script src="src/main.js?v=116"></script>
 </div>
 </body>
 </html>
